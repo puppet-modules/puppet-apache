@@ -5,6 +5,9 @@
 # After http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
 # where Tim Stoop <tim.stoop@gmail.com> graciously posted this recipe
 
+$sites = "/etc/apache2/sites"
+$mods = "/etc/apache2/mods"
+
 class apache2 {
 
 	package { apache2:
@@ -63,8 +66,6 @@ class apache2 {
 
 
 # defines from http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
-$sites = "/etc/apache2/sites"
-$mods = "/etc/apache2/mods"
 
 # Define an apache2 site. Place all site configs into
 # /etc/apache2/sites-available and en-/disable them with this type.
