@@ -51,7 +51,7 @@ class apache2 {
 	exec { "reload-apache2":
 		command => "/etc/init.d/apache2 reload",
 		refreshonly => true,
-		before => Service["apache2"],
+		before => [ Service["apache2"], Exec["force-reload-apache2"] ]
 	}
 
 	exec { "force-reload-apache2":
