@@ -63,7 +63,19 @@ class apache2 {
 		before => Service["apache2"],
 	}
 
-
+	# munin integration
+	package { "libwww-perl": ensure => installed }
+	config_file { "/etc/apache2/sites-available/munin-stats":
+		content => template("apache/munin-stats"),
+		notify => Exec["reload-apache2"]
+	}
+	module { info: ensure => present }
+	site { munin-stats: ensure => present }
+	munin::plugin {
+		[ "apache_accesses", "apache_processes", "apache_volume" ]:
+			ensure => present,
+			config => "env.url http://$ipaddress:8888/server-status?auto"
+	}
 
 # defines from http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
 
