@@ -42,6 +42,7 @@ class apache2 {
 			file { "/etc/apache2/conf.d/ssl_puppet":
 				content => "Listen $apache2_ssl_port_real\nSSLCertificateFile /etc/puppet/ssl/certs/$fqdn.pem\nSSLCertificateKeyFile /etc/puppet/ssl/private_keys/$fqdn.pem\n",
 				mode => 644, owner => root, group => root,
+				require => Package["apache2"], 
 				notify => Exec["reload-apache2"],
 			}
 		}
@@ -67,6 +68,7 @@ class apache2 {
 	package { "libwww-perl": ensure => installed }
 	config_file { "/etc/apache2/sites-available/munin-stats":
 		content => template("apache/munin-stats"),
+		require => Package["apache2"],
 		notify => Exec["reload-apache2"]
 	}
 	module { info: ensure => present }
