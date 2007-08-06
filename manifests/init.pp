@@ -23,11 +23,17 @@ class apache2 {
 
 	$apache2_port_real = $apache2_port ? { '' => 80, default => $apache2_port }
 
-	file { "/etc/apache2/ports.conf":
-		content => "Listen $apache2_port_real\n",
-		mode => 644, owner => root, group => root,
-		require => Package[apache2],
-		notify => Exec["reload-apache2"],
+	file {
+		"/etc/apache2/ports.conf":
+			content => "Listen $apache2_port_real\n",
+			mode => 644, owner => root, group => root,
+			require => Package[apache2],
+			notify => Exec["reload-apache2"];
+		"/etc/apache2/conf.d":
+			ensure => directory, checksum => mtime,
+			mode => 644, owner => root, group => root,
+			require => Package[apache2],
+			notify => Exec["reload-apache2"];
 	}
 
 	nagios2::service { "http_$apache2_port_real":

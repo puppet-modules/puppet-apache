@@ -1,5 +1,6 @@
 # create a virtual host which provides statistics for munin
 ExtendedStatus on
+NameVirtualHost <%= ipaddress %>:*
 <VirtualHost <%= ipaddress %>:*>
 	# hide this a little bit from "normal" accesses
 	ServerName <%= ipaddress %>
