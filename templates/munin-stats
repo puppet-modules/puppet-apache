@@ -1,7 +1,8 @@
 # create a virtual host which provides statistics for munin
-Listen <%= ipaddress %>:8888
 ExtendedStatus on
-<VirtualHost <%= ipaddress %>:8888>
+<VirtualHost <%= ipaddress %>:*>
+	# hide this a little bit from "normal" accesses
+	ServerName <%= ipaddress %>
 	<Directory />
 		Order deny,allow
 		Deny from all
