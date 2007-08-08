@@ -1,9 +1,10 @@
 # create a virtual host which provides statistics for munin
 ExtendedStatus on
-NameVirtualHost <%= ipaddress %>:*
+NameVirtualHost <%= ipaddress %>
 <VirtualHost <%= ipaddress %>:*>
 	# hide this a little bit from "normal" accesses
-	ServerName <%= ipaddress %>
+	# This expects that external users only use the fqdn to access a service
+	ServerName <%= hostname %>
 	<Directory />
 		Order deny,allow
 		Deny from all
