@@ -44,7 +44,7 @@ class apache2 {
 		enabled: { 
 			apache2::module { "ssl": ensure => present }
 
-			$apache2_ssl_port_real = $apache2_port ? { '' => 443, default => $apache2_ssl_port }
+			$apache2_ssl_port_real = $apache2_ssl_port ? { '' => 443, default => $apache2_ssl_port }
 			file { "/etc/apache2/conf.d/ssl_puppet":
 				content => "Listen $apache2_ssl_port_real\nSSLCertificateFile /etc/puppet/ssl/certs/$fqdn.pem\nSSLCertificateKeyFile /etc/puppet/ssl/private_keys/$fqdn.pem\n",
 				mode => 644, owner => root, group => root,
@@ -144,6 +144,8 @@ define module ( $ensure = 'present', $require = 'apache2' ) {
 }
 
 class no_default_site inherits apache2 {
+	# Don't use site here, because the default site ships with a
+	# non-default symlink. Oh, the irony!
 	exec { "/usr/sbin/a2dissite default":
 		onlyif => "/usr/bin/test -L /etc/apache2/sites-enabled/000-default",
 		notify => Exec["reload-apache2"],

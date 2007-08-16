@@ -1,0 +1,74 @@
+Overview
+========
+
+This module manages apache2 on Debian/etch. There are defines to handle sites
+and modules the Debian Way.
+
+See also the wiki page at http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
+which was originally written by Tim Stoop <tim.stoop@gmail.com>
+
+Variables
+=========
+
+The primary port (default: 80) can be configured by setting $apache2_port in
+the node scope.
+
+Setting $apache2_ssl to "enabled", causes the SSL module to be installed and 
+configured. Additionally apache2 is configured to listen on 443 or
+$apache2_ssl_port and use puppet's certificate.
+
+
+Classes
+=======
+
+The main class, apache2, installs apache2 with the default MPM. 
+
+The apache2::no_default_site variant additionally removes Debian's default site
+configuration.
+
+
+Types
+=====
+
+This module provides types for site and module management.
+
+	apache2::site (
+		$ensure = {*present*, absent},
+		$require = {*apache2*, packagename}
+	)
+
+This type enables or disables the /etc/apache2/sites-enabled/$name symlink by
+calling a2ensite or a2dissite as neccessary.
+	
+
+
+
+	apache2::module (
+		$ensure = {*present*, absent},
+		$require = {*apache2*, packagename}
+	)
+
+This type enables or disables the /etc/apache2/mods-enabled/$name symlink by
+calling a2enmod or a2dismod as neccessary.
+	
+
+
+
+Monitoring
+==========
+
+The class installs a nagios2 service check for the primary port. Additionally
+a NameVirtualHost for $hostname is configured where the server-status is
+available for access from $ipaddress. This is used by the munin plugins
+apache_accesses, apache_processes and apache_volume.
+
+
+
+TODO
+====
+
+The site type should manage the sites-available file too, by providing
+content/source parameters.
+
+With the recent changes to "require" stacking, the site's and module's require
+parameter is obsolete.
