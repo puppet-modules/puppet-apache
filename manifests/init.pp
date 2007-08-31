@@ -40,6 +40,7 @@ class apache2 {
 		check_command => "http_port!$apache2_port_real"
 	}
 
+	# configure ssl
 	case $apache2_ssl {
 		enabled: { 
 			apache2::module { "ssl": ensure => present }
