@@ -47,7 +47,7 @@ class apache2 {
 
 			$apache2_ssl_port_real = $apache2_ssl_port ? { '' => 443, default => $apache2_ssl_port }
 			file { "/etc/apache2/conf.d/ssl_puppet":
-				content => "Listen $apache2_ssl_port_real\nSSLCertificateFile /etc/puppet/ssl/certs/$fqdn.pem\nSSLCertificateKeyFile /etc/puppet/ssl/private_keys/$fqdn.pem\n",
+				content => "Listen $apache2_ssl_port_real\nSSLCertificateFile /var/lib/puppet/ssl/certs/$fqdn.pem\nSSLCertificateKeyFile /var/lib/puppet/ssl/private_keys/$fqdn.pem\n",
 				mode => 644, owner => root, group => root,
 				require => Package["apache2"], 
 				notify => Exec["reload-apache2"],
