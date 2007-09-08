@@ -104,12 +104,12 @@ define site ( $ensure = 'present', $require_package = 'apache2', $content = '' )
 	case $content {
 		'': { }
 		default: {
-			exec { "/bin/echo huhu": }
 			file { "${sites}-available/${name}":
 				ensure => $ensure,
 				content => $content,
 				mode => 0664, owner => root, group => root,
-				before => Exec["a2site-${name}"]
+				before => Exec["a2site-${name}"],
+				notify => Exec["reload-apache2"],
 			}
 		}
 	}
