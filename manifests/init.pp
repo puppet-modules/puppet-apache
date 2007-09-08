@@ -94,14 +94,34 @@ class apache2 {
 # You can add a custom require (string) if the site depends on packages
 # that aren't part of the default apache2 package. Because of the
 # package dependencies, apache2 will automagically be included.
-define site ( $ensure = 'present', $require = 'apache2' ) {
+#
+# With the optional parameter "content", the site config can be provided
+# directly (e.g. with template())
+#
+# TODO: add "source" parameter too.
+define site ( $ensure = 'present', $require_package = 'apache2', $content = '' ) {
+
+	case $content {
+		'': { }
+		default: {
+			exec { "/bin/echo huhu": }
+			file { "${sites}-available/${name}":
+				ensure => $ensure,
+				content => $content,
+				mode => 0664, owner => root, group => root,
+				before => Exec["a2site-${name}"]
+			}
+		}
+	}
+
 	case $ensure {
 		'present' : {
 			exec { "/usr/sbin/a2ensite $name":
 				unless => "/bin/sh -c '[ -L ${sites}-enabled/$name ] \\
 							&& [ ${sites}-enabled/$name -ef ${sites}-available/$name ]'",
 				notify => Exec["reload-apache2"],
-				require => Package[$require],
+				require => Package[$require_package],
+				alias => "a2site-$name"
 			}
 		}
 		'absent' : {
@@ -110,10 +130,12 @@ define site ( $ensure = 'present', $require = 'apache2' ) {
 							&& [ ${sites}-enabled/$name -ef ${sites}-available/$name ]'",
 				notify => Exec["reload-apache2"],
 				require => Package["apache2"],
+				alias => "a2site-$name"
 			}
 		}
 		default: { err ( "Unknown ensure value: '$ensure'" ) }
 	}
+
 }
 
 # Define an apache2 module. Debian packages place the module config
@@ -122,14 +144,14 @@ define site ( $ensure = 'present', $require = 'apache2' ) {
 # You can add a custom require (string) if the module depends on 
 # packages that aren't part of the default apache2 package. Because of 
 # the package dependencies, apache2 will automagically be included.
-define module ( $ensure = 'present', $require = 'apache2' ) {
+define module ( $ensure = 'present', $require_package = 'apache2' ) {
 	case $ensure {
 		'present' : {
 			exec { "/usr/sbin/a2enmod $name":
 				unless => "/bin/sh -c '[ -L ${mods}-enabled/${name}.load ] \\
 					&& [ ${mods}-enabled/${name}.load -ef ${mods}-available/${name}.load ]'",
 				notify => Exec["force-reload-apache2"],
-				require => Package[$require],
+				require => Package[$require_package],
 			}
 		}
 		'absent': {
