@@ -1,9 +1,9 @@
 # create a virtual host which provides statistics for munin
 ExtendedStatus on
-NameVirtualHost *
-<VirtualHost *>
-	# hide this a little bit from "normal" accesses
-	# This expects that external users only use the fqdn to access a service
+# hide this a little bit from "normal" accesses
+Listen 8666
+NameVirtualHost *:8666
+<VirtualHost *:8666>
 	ServerName <%= hostname %>
 	<Directory />
 		Order deny,allow

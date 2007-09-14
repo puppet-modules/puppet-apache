@@ -83,7 +83,7 @@ class apache2 {
 	munin::plugin {
 		[ "apache_accesses", "apache_processes", "apache_volume" ]:
 			ensure => present,
-			config => "env.url http://${hostname}:${apache2_port_real}/server-status?auto"
+			config => "env.url http://${hostname}:8666/server-status?auto"
 	}
 
 # defines from http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
