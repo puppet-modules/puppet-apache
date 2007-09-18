@@ -1,9 +1,9 @@
 # create a virtual host which provides statistics for munin
 ExtendedStatus on
 # hide this a little bit from "normal" accesses
-Listen 8666
-NameVirtualHost *:8666
-<VirtualHost *:8666>
+Listen <%= real_munin_stats_port %>
+NameVirtualHost *:<%= real_munin_stats_port %>
+<VirtualHost *:<%= real_munin_stats_port %>>
 	ServerName <%= hostname %>
 	<Directory />
 		Order deny,allow

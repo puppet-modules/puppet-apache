@@ -72,6 +72,7 @@ class apache2 {
 	}
 
 	# munin integration
+	$real_munin_stats_port = $munin_stats_port ? { '' => 8666, default => $munin_stats_port }
 	package { "libwww-perl": ensure => installed }
 	config_file { "/etc/apache2/sites-available/munin-stats":
 		content => template("apache/munin-stats"),
@@ -83,7 +84,7 @@ class apache2 {
 	munin::plugin {
 		[ "apache_accesses", "apache_processes", "apache_volume" ]:
 			ensure => present,
-			config => "env.url http://${hostname}:8666/server-status?auto"
+			config => "env.url http://${hostname}:${real_munin_stats_port}/server-status?auto"
 	}
 
 # defines from http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
