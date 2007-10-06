@@ -97,44 +97,61 @@ class apache2 {
 # package dependencies, apache2 will automagically be included.
 #
 # With the optional parameter "content", the site config can be provided
-# directly (e.g. with template())
-#
-# TODO: add "source" parameter too.
-define site ( $ensure = 'present', $require_package = 'apache2', $content = '' ) {
+# directly (e.g. with template()). Alternatively "source" is used as a standard
+# File%source URL to get the site file. The third possiblity is setting
+# "ensure" to a filename, which will be symlinked.
+define site2 ( $ensure = 'present', $require_package = 'apache2', $content = '', $source = '') {
+
+	$available_file = "${sites}-available/${name}"
+	$enabled_file = "${sites}-enabled/${name}"
+	$enabled_file_ensure = $ensure ? { 'absent' => 'absent', default => "${sites}-available/${name}" }
+	$a2site_exec = $ensure ? { 'absent' => "/usr/sbin/a2dissite ${name}", '' => "/usr/sbin/a2ensite ${name}" }
 
 	case $content {
-		'': { }
+		'': {
+			case $source {
+				'': {
+					file {
+						$available_file:
+							ensure => $ensure,
+							mode => 0664, owner => root, group => root,
+							notify => [ Exec["a2site-${name}"], Exec["reload-apache2"] ];
+					}
+				}
+				default: {
+					file { 
+						$available_file:
+							ensure => $ensure,
+							source => $source,
+							mode => 0664, owner => root, group => root,
+							notify => [ Exec["a2site-${name}"], Exec["reload-apache2"] ];
+					}
+				}
+			}
+		}
 		default: {
-			file { "${sites}-available/${name}":
+			file { $available_file:
 				ensure => $ensure,
 				content => $content,
 				mode => 0664, owner => root, group => root,
-				before => Exec["a2site-${name}"],
-				notify => Exec["reload-apache2"],
+				notify => [ Exec["a2site-${name}"], Exec["reload-apache2"] ];
 			}
 		}
 	}
 
-	case $ensure {
-		'present' : {
-			exec { "/usr/sbin/a2ensite $name":
-				unless => "/bin/sh -c '[ -L ${sites}-enabled/$name ] \\
-							&& [ ${sites}-enabled/$name -ef ${sites}-available/$name ]'",
-				notify => Exec["reload-apache2"],
-				require => Package[$require_package],
-				alias => "a2site-$name"
-			}
-		}
-		'absent' : {
-			exec { "/usr/sbin/a2dissite $name":
-				onlyif => "/bin/sh -c '[ -L ${sites}-enabled/$name ] \\
-							&& [ ${sites}-enabled/$name -ef ${sites}-available/$name ]'",
-				notify => Exec["reload-apache2"],
-				require => Package["apache2"],
-				alias => "a2site-$name"
-			}
-		}
-		default: { err ( "Unknown ensure value: '$ensure'" ) }
+	file {
+		$enabled_file:
+			ensure => $enabled_file_ensure,
+			mode => 0664, owner => root, group => root,
+			require => Exec["a2site-${name}"],
+			notify => Exec["reload-apache2"];
+	}
+
+	exec { $a2site_exec:
+		refreshonly => yes,
+		notify => Exec["reload-apache2"],
+		require => Package[$require_package],
+		alias => "a2site-${name}"
 	}
 
 }

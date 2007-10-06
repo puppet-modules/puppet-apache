@@ -33,12 +33,15 @@ Types
 This module provides types for site and module management.
 
 	apache2::site (
-		$ensure = {*present*, absent},
-		$require = {*apache2*, packagename}
+		$ensure = {*present*, absent, "filename"},
+		$require_package = {*apache2*, packagename},
+		$content,
+		$source,
 	)
 
-This type enables or disables the /etc/apache2/sites-enabled/$name symlink by
-calling a2ensite or a2dissite as neccessary.
+This type manages the /etc/apache2/sites-available file and enables or disables
+the /etc/apache2/sites-enabled/$name symlink by calling a2ensite or a2dissite
+as neccessary.
 	
 
 
