@@ -74,13 +74,8 @@ class apache2 {
 	# munin integration
 	$real_munin_stats_port = $munin_stats_port ? { '' => 8666, default => $munin_stats_port }
 	package { "libwww-perl": ensure => installed }
-	config_file { "/etc/apache2/sites-available/munin-stats":
-		content => template("apache/munin-stats"),
-		require => Package["apache2"],
-		notify => Exec["reload-apache2"]
-	}
 	module { info: ensure => present }
-	site { munin-stats: ensure => present }
+	site { munin-stats: ensure => present, content => template("apache/munin-stats"), }
 	munin::plugin {
 		[ "apache_accesses", "apache_processes", "apache_volume" ]:
 			ensure => present,
@@ -100,12 +95,12 @@ class apache2 {
 # directly (e.g. with template()). Alternatively "source" is used as a standard
 # File%source URL to get the site file. The third possiblity is setting
 # "ensure" to a filename, which will be symlinked.
-define site2 ( $ensure = 'present', $require_package = 'apache2', $content = '', $source = '') {
+define site ( $ensure = 'present', $require_package = 'apache2', $content = '', $source = '') {
 
 	$available_file = "${sites}-available/${name}"
 	$enabled_file = "${sites}-enabled/${name}"
 	$enabled_file_ensure = $ensure ? { 'absent' => 'absent', default => "${sites}-available/${name}" }
-	$a2site_exec = $ensure ? { 'absent' => "/usr/sbin/a2dissite ${name}", '' => "/usr/sbin/a2ensite ${name}" }
+	$a2site_exec = $ensure ? { 'absent' => "/usr/sbin/a2dissite ${name}", 'present' => "/usr/sbin/a2ensite ${name}" }
 
 	case $content {
 		'': {
@@ -148,7 +143,7 @@ define site2 ( $ensure = 'present', $require_package = 'apache2', $content = '',
 	}
 
 	exec { $a2site_exec:
-		refreshonly => yes,
+		refreshonly => true,
 		notify => Exec["reload-apache2"],
 		require => Package[$require_package],
 		alias => "a2site-${name}"
