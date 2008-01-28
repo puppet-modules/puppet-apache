@@ -10,7 +10,7 @@ $mods = "/etc/apache2/mods"
 
 class apache2 {
 
-	package { apache2, libapache2-mod-auth-pam:
+	package { [ apache2, libapache2-mod-auth-pam ]:
 		ensure => installed,
 	}
 
