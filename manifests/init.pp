@@ -34,6 +34,11 @@ class apache2 {
 			mode => 644, owner => root, group => root,
 			require => Package[apache2],
 			notify => Exec["reload-apache2"];
+		"/etc/apache2/conf.d/charset":
+			content => "# This really breaks many apps and pages otherwise\n# Disabled: AddDefaultCharset UTF-8\n",
+			mode => 644, owner => root, group => root,
+			require => Package[apache2],
+			notify => Exec["reload-apache2"];
 	}
 
 	nagios2::service { "http_$apache2_port_real":
