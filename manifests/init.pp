@@ -5,6 +5,8 @@
 # After http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianApache2Recipe
 # where Tim Stoop <tim.stoop@gmail.com> graciously posted this recipe
 
+import "awstats.pp"
+
 $sites = "/etc/apache2/sites"
 $mods = "/etc/apache2/mods"
 
