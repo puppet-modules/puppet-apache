@@ -21,7 +21,7 @@ class apache {
 }
 
 class apache::base {
-	modules_dir { "apache": }
+	modules_dir { [ "apache", "apache/mods", "apache/conf", "apache/sites" ]: }
 
 	package {
 		"apache": ensure => installed;
@@ -77,7 +77,10 @@ class apache::base {
 	# needed.
 	exec { "reload-apache":
 		refreshonly => true,
-		before => [ Service["apache"], Exec["force-reload-apache"] ]
+		before => [ Service["apache"], Exec["force-reload-apache"] ],
+		subscribe => [ File["/var/lib/puppet/modules/apache/mods"],
+			File["/var/lib/puppet/modules/apache/conf"],
+			File["/var/lib/puppet/modules/apache/sites"] ]
 	}
 
 	exec { "force-reload-apache":
@@ -97,75 +100,6 @@ class apache::base {
 	}
 	nagios2::service { "http_${apache_port_real}":
 		check_command => "http_port!${apache_port_real}"
-	}
-
-}
-
-# defines from http://reductivelabs.com/trac/puppet/wiki/Recipes/DebianapacheRecipe
-
-# Define an apache site. Place all site configs into
-# /etc/apache/sites-available and en-/disable them with this type.
-#
-# You can add a custom require (string) if the site depends on packages
-# that aren't part of the default apache package. Because of the
-# package dependencies, apache will automagically be included.
-#
-# With the optional parameter "content", the site config can be provided
-# directly (e.g. with template()). Alternatively "source" is used as a standard
-# File%source URL to get the site file. The third possiblity is setting
-# "ensure" to a filename, which will be symlinked.
-define apache::site ( $ensure = 'present', $require_package = 'apache', $content = '', $source = '') {
-
-	$available_file = "${sites}-available/${name}"
-	$enabled_file = "${sites}-enabled/${name}"
-	$enabled_file_ensure = $ensure ? { 'absent' => 'absent', default => "${sites}-available/${name}" }
-	$a2site_exec = $ensure ? { 'absent' => "/usr/sbin/a2dissite ${name}", 'present' => "/usr/sbin/a2ensite ${name}" }
-
-	case $content {
-		'': {
-			case $source {
-				'': {
-					file {
-						$available_file:
-							ensure => $ensure,
-							mode => 0664, owner => root, group => root,
-							notify => [ Exec["a2site-${name}"], Exec["reload-apache"] ];
-					}
-				}
-				default: {
-					file { 
-						$available_file:
-							ensure => $ensure,
-							source => $source,
-							mode => 0664, owner => root, group => root,
-							notify => [ Exec["a2site-${name}"], Exec["reload-apache"] ];
-					}
-				}
-			}
-		}
-		default: {
-			file { $available_file:
-				ensure => $ensure,
-				content => $content,
-				mode => 0664, owner => root, group => root,
-				notify => [ Exec["a2site-${name}"], Exec["reload-apache"] ];
-			}
-		}
-	}
-
-	file {
-		$enabled_file:
-			ensure => $enabled_file_ensure,
-			mode => 0664, owner => root, group => root,
-			require => Exec["a2site-${name}"],
-			notify => Exec["reload-apache"];
-	}
-
-	exec { $a2site_exec:
-		refreshonly => true,
-		notify => Exec["reload-apache"],
-		require => Package[$require_package],
-		alias => "a2site-${name}"
 	}
 
 }
@@ -195,16 +129,6 @@ define apache::module ( $ensure = 'present', $require_package = 'apache' ) {
 			}
 		}
 		default: { err ( "Unknown ensure value: '$ensure'" ) }
-	}
-}
-
-# disable the default site on debian
-class apache::no_default_site inherits apache {
-	# Don't use site here, because the default site ships with a
-	# non-default symlink. Oh, the irony!
-	exec { "/usr/sbin/a2dissite default":
-		onlyif => "/usr/bin/test -L /etc/apache/sites-enabled/000-default",
-		notify => Exec["reload-apache"],
 	}
 }
 

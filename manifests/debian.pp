@@ -18,5 +18,22 @@ class apache::debian inherits apache::base {
 
 	Exec["reload-apache"] { command => "/etc/init.d/apache2 reload", }
 	Exec["force-reload-apache"] { command => "/etc/init.d/apache2 force-reload", }
-}
 
+	# remove the default site in debian
+	file { "/etc/apache/sites-enabled/000-default": ensure => absent }
+
+	# activate inclusion of unified directory structure
+	line { 
+		"Include /var/lib/puppet/modules/apache/mods/":
+			notify => Exec["reload-apache"],
+			ensure => present, file => "/etc/apache2/apache2.conf";
+		"Include /var/lib/puppet/modules/apache/conf/":
+			notify => Exec["reload-apache"],
+			require => Line["Include /var/lib/puppet/modules/apache/mods/"],
+			ensure => present, file => "/etc/apache2/apache2.conf";
+		"Include /var/lib/puppet/modules/apache/sites/":
+			notify => Exec["reload-apache"],
+			require => Line["Include /var/lib/puppet/modules/apache/conf/"],
+			ensure => present, file => "/etc/apache2/apache2.conf";
+	}
+}
