@@ -20,19 +20,6 @@ class apache {
 	include "apache::${operatingsystem}"
 }
 
-class apache::debian inherits apache::base { 
-	#TODO: refactor all debian specifics from ::base here
-	Package["apache"] { name => apache2 }
-	Service["apache"] {
-		name => "apache2",
-		pattern => "/usr/sbin/apache2",
-		hasrestart => true,
-	}
-
-	Exec["reload-apache"] { command => "/etc/init.d/apache2 reload", }
-	Exec["force-reload-apache"] { command => "/etc/init.d/apache2 force-reload", }
-}
-
 class apache::base {
 	modules_dir { "apache": }
 
