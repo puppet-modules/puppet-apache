@@ -16,12 +16,22 @@
 define apache::site ( $ensure = 'present', $require_package = 'apache', $content = '', $source = '') {
 	include apache
 
-	$site_file = "/var/lib/modules/apache/sites/${name}"
+	$site_file = "/var/lib/puppet/modules/apache/sites/${name}"
 	config_file {
 		$site_file:
 			ensure => $ensure,
 			content => $content,
 			source => $source,
 			notify => Exec["reload-apache"]
+	}
+
+	# remove legacy sites from debian
+	file {
+		"/etc/apache2/sites-available/${name}":
+			notify => Exec["reload-apache"],
+			ensure => absent;
+		"/etc/apache2/sites-enabled/${name}":
+			notify => Exec["reload-apache"],
+			ensure => absent;
 	}
 }
