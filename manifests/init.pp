@@ -7,6 +7,7 @@
 # modifications for multiple distros with support from <admin@immerda.ch>
 
 import "awstats.pp"
+import "site.pp"
 
 $sites = "/etc/apache2/sites"
 $mods = "/etc/apache2/mods"
@@ -91,8 +92,8 @@ class apache::base {
 	# Monitoring stuff: munin and nagios
 	$real_munin_stats_port = $munin_stats_port ? { '' => 8666, default => $munin_stats_port }
 	package { "libwww-perl": ensure => installed }
-	module { info: ensure => present }
-	site { munin-stats: ensure => present, content => template("apache/munin-stats"), }
+	apache::module { info: ensure => present }
+	apache::site { munin-stats: ensure => present, content => template("apache/munin-stats"), }
 	munin::plugin {
 		[ "apache_accesses", "apache_processes", "apache_volume" ]:
 			ensure => present,
