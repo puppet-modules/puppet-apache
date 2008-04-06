@@ -128,7 +128,6 @@ define apache::module ( $ensure = 'present', $require_package = 'apache' ) {
 				require => Package["apache"],
 			}
 		}
-		default: { err ( "Unknown ensure value: '$ensure'" ) }
 	}
 }
 
