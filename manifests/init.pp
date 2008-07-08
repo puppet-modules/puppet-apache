@@ -26,8 +26,6 @@ class apache::base {
 
 	package {
 		"apache": ensure => installed;
-		# TODO: refactor away, this is not part of the LCD
-		"libapache-mod-auth-pam": ensure => installed,
 	}
 
 	service { apache:
