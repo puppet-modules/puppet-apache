@@ -35,11 +35,13 @@ class apache::base {
 
 	$apache_port_real = $apache_port ? { '' => 80, default => $apache_port }
 
+	apache::port { "apache_class": port => $apache_port_real }
+
 	# TODO: This has to be replaced by OS-specific configuration redirection
 	# into $modules_dir/apache
 	file {
 		"/etc/apache2/ports.conf":
-			content => "Listen $apache_port_real\n",
+			content => "",
 			mode => 644, owner => root, group => root,
 			require => Package[apache],
 			notify => Exec["reload-apache"];
@@ -61,8 +63,11 @@ class apache::base {
 			apache::module { "ssl": ensure => present }
 
 			$apache_ssl_port_real = $apache_ssl_port ? { '' => 443, default => $apache_ssl_port }
+
+			apache::port { "apache_ssl_class": port => $apache_ssl_port_real }
+
 			file { "/etc/apache2/conf.d/ssl_puppet":
-				content => "Listen ${apache_ssl_port_real}\nSSLCertificateFile /var/lib/puppet/ssl/certs/${fqdn}.pem\nSSLCertificateKeyFile /var/lib/puppet/ssl/private_keys/${fqdn}.pem\n",
+				content => "SSLCertificateFile /var/lib/puppet/ssl/certs/${fqdn}.pem\nSSLCertificateKeyFile /var/lib/puppet/ssl/private_keys/${fqdn}.pem\n",
 				mode => 644, owner => root, group => root,
 				require => Package["apache"], 
 				notify => Exec["reload-apache"],
@@ -89,6 +94,7 @@ class apache::base {
 
 	# Monitoring stuff: munin and nagios
 	$real_munin_stats_port = $munin_stats_port ? { '' => 8666, default => $munin_stats_port }
+	apache::port { "apache::munin": port => $real_munin_stats_port }
 	package { "libwww-perl": ensure => installed }
 	apache::module { info: ensure => present }
 	apache::site { munin-stats: ensure => present, content => template("apache/munin-stats"), }
@@ -130,3 +136,16 @@ define apache::module ( $ensure = 'present', $require_package = 'apache' ) {
 	}
 }
 
+# Create a Listen directive for apache in ports.conf
+# Use the $name to disambiguate between requests for the same port from
+# different modules
+define apache::port($port) {
+	line {
+		"apache::port::${name}":
+			file => "/etc/apache2/ports.conf",
+			line => "Listen ${port}",
+			ensure => present,
+			require => File["/etc/apache2/ports.conf"],
+			notify => Exec["reload-apache"];
+	}
+}
