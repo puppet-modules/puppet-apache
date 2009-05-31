@@ -16,7 +16,7 @@
 define apache::site ( $ensure = 'present', $require_package = 'apache', $content = '', $source = '') {
 	include apache
 
-	$site_file = "/var/lib/puppet/modules/apache/sites/${name}"
+	$site_file = "${module_dir_path}/apache/sites/${name}"
 	config_file {
 		$site_file:
 			ensure => $ensure,

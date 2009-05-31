@@ -22,7 +22,7 @@ class apache {
 }
 
 class apache::base {
-	modules_dir { [ "apache", "apache/mods", "apache/conf", "apache/sites" ]: }
+	module_dir { [ "apache", "apache/mods", "apache/conf", "apache/sites" ]: }
 
 	package {
 		"apache": ensure => installed;
@@ -38,7 +38,7 @@ class apache::base {
 	apache::port { "apache_class": port => $apache_port_real }
 
 	# TODO: This has to be replaced by OS-specific configuration redirection
-	# into $modules_dir/apache
+	# into $module_dir_path/apache
 	file {
 		"/etc/apache2/ports.conf":
 			content => "",
@@ -82,9 +82,9 @@ class apache::base {
 	exec { "reload-apache":
 		refreshonly => true,
 		before => [ Service["apache"], Exec["force-reload-apache"] ],
-		subscribe => [ File["/var/lib/puppet/modules/apache/mods"],
-			File["/var/lib/puppet/modules/apache/conf"],
-			File["/var/lib/puppet/modules/apache/sites"] ]
+		subscribe => [ File["${module_dir_path}/apache/mods"],
+			File["${module_dir_path}/apache/conf"],
+			File["${module_dir_path}/apache/sites"] ]
 	}
 
 	exec { "force-reload-apache":
