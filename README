@@ -60,7 +60,7 @@ calling a2enmod or a2dismod as neccessary.
 Monitoring
 ==========
 
-The class installs a nagios2 service check for the primary port. Additionally
+The class installs a nagios service check for the primary port. Additionally
 a NameVirtualHost for $hostname is configured where the server-status is
 available for access from $ipaddress. This is used by the munin plugins
 apache_accesses, apache_processes and apache_volume.

@@ -103,7 +103,7 @@ class apache::base {
 			ensure => present,
 			config => "env.url http://${hostname}:${real_munin_stats_port}/server-status?auto"
 	}
-	nagios2::service { "http_${apache_port_real}":
+	nagios::service { "http_${apache_port_real}":
 		check_command => "http_port!${apache_port_real}"
 	}
 
