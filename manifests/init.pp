@@ -57,6 +57,9 @@ class apache::base {
 			notify => Exec["reload-apache"];
 	}
 
+	# always enable output compression
+	apache::module { "deflate": ensure => present }
+
 	# configure ssl
 	case $apache_ssl {
 		enabled: { 
