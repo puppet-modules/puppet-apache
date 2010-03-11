@@ -25,7 +25,9 @@ class apache::base {
 	module_dir { [ "apache", "apache/mods", "apache/conf", "apache/sites" ]: }
 
 	package {
-		"apache": ensure => installed;
+		"apache":
+			ensure => installed,
+			before => Concat["/etc/apache2/ports.conf"];
 	}
 
 	service { apache:
@@ -39,12 +41,12 @@ class apache::base {
 
 	# TODO: This has to be replaced by OS-specific configuration redirection
 	# into $module_dir_path/apache
-	file {
+	include concat::setup
+	concat {
 		"/etc/apache2/ports.conf":
-			content => "",
 			mode => 644, owner => root, group => root,
-			require => Package[apache],
-			notify => Exec["reload-apache"];
+	}
+	file {
 		"/etc/apache2/conf.d":
 			ensure => directory, checksum => mtime,
 			mode => 644, owner => root, group => root,
@@ -87,7 +89,8 @@ class apache::base {
 		before => [ Service["apache"], Exec["force-reload-apache"] ],
 		subscribe => [ File["${module_dir_path}/apache/mods"],
 			File["${module_dir_path}/apache/conf"],
-			File["${module_dir_path}/apache/sites"] ]
+			File["${module_dir_path}/apache/sites"],
+			File["/etc/apache2/ports.conf"] ]
 	}
 
 	exec { "force-reload-apache":
@@ -143,12 +146,9 @@ define apache::module ( $ensure = 'present', $require_package = 'apache' ) {
 # Use the $name to disambiguate between requests for the same port from
 # different modules
 define apache::port($port) {
-	line {
+	concat::fragment {
 		"apache::port::${name}":
-			file => "/etc/apache2/ports.conf",
-			line => "Listen ${port}",
-			ensure => present,
-			require => File["/etc/apache2/ports.conf"],
-			notify => Exec["reload-apache"];
+			target => "/etc/apache2/ports.conf",
+			content => "Listen ${port}\n";
 	}
 }
